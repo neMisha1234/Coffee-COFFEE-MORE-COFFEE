@@ -1,41 +1,34 @@
 from PyQt5 import uic
-from PyQt5.QtWidgets import QMainWindow, QApplication
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtWidgets import QMainWindow, QApplication, QTableWidget, QTableWidgetItem
+import sqlite3
 import sys
 import random
 
 
-class YellowCircles(QMainWindow):
+class CoffeeWidjet(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('UI.ui', self)
+        uic.loadUi('main.ui', self)
         self.initUI()
 
     def initUI(self):
-        self.do_paint = False
-        self.pushButton.clicked.connect(self.paint)
+        self.tableWidget.setColumnCount(7)
+        self.add_from_db_to_table()
 
-    def paintEvent(self, event):
-        if self.do_paint:
-            qp = QPainter()
-            qp.begin(self)
-            self.draw_circles(qp)
-            qp.end()
-        self.do_paint = False
-
-    def paint(self):
-        self.do_paint = True
-        self.update()
-
-    def draw_circles(self, qp):
-        for n in range(3):
-            r = random.randint(10, 40)
-            qp.setPen(QColor(238, 210, 18))
-            qp.drawEllipse(50 * n, 100, r, r)
+    def add_from_db_to_table(self):
+        con = sqlite3.connect("coffee.sqlite")
+        cur = con.cursor()
+        i = 0
+        for el in cur.execute("SELECT * FROM coffee").fetchall():
+            self.tableWidget.setRowCount(self.tableWidget.rowCount() + 1)
+            for j in range(7):
+                self.tableWidget.setItem(i, j, QTableWidgetItem(str(el[j])))
+            i += 1
+        con.close()
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    yc = YellowCircles()
+    yc = CoffeeWidjet()
     yc.show()
     sys.exit(app.exec())
